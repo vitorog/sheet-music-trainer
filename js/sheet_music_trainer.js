@@ -9,12 +9,19 @@ var SHEET_X;
 var SHEET_Y;
 var LINE_SPACING = 50;
 var SHEET_RIGHT_MARGIN = 50;
-var SHEET_LEFT_MARGIN = 50;
-var SHEET_TOP_MARGIN = 250;
-var TREBLE_CLEF_X = 100;
-var TREBLE_CLEF_Y = 210;
+var SHEET_LEFT_MARGIN = 5;
+var SHEET_TOP_MARGIN = 20;
+var TREBLE_CLEF_X;
+var TREBLE_CLEF_Y;
+var TREBLE_CLEF_LEFT_MARGIN = 50; // Relative to Sheet Music position
+var TREBLE_CLEF_TOP_MARGIN = 40; // Relative to Sheet Music position
 var TREBLE_CLEF_SIZE_FACTOR = 9;
 var STEM_HEIGHT = 125;
+var TREBLE_C3_POS = 0;
+var SHEET_LINES_START_Y = 0; // Y-Position of the topmost line in the sheet music
+var TREBLE_NOTES_POSITION = {}
+var BASS_NOTES_POSITION = {}
+var MUSIC_NOTES = {}
 
 function setup() {
 	CANVAS = document.getElementById("canvas");
@@ -28,6 +35,10 @@ function setup() {
 	SHEET_Y = 0;
 	SHEET_WIDTH = CANVAS.width;
 	SHEET_HEIGHT = CANVAS.height;
+	SHEET_TOP_MARGIN = SHEET_TOP_MARGIN * CANVAS_HEIGHT / 100;
+	TREBLE_CLEF_Y = SHEET_TOP_MARGIN - TREBLE_CLEF_TOP_MARGIN;
+	SHEET_LEFT_MARGIN = SHEET_LEFT_MARGIN * CANVAS_WIDTH / 100;
+	TREBLE_CLEF_X = SHEET_LEFT_MARGIN + TREBLE_CLEF_LEFT_MARGIN;
 }
 
 function drawTrebleClef() {
@@ -45,6 +56,7 @@ function drawLines() {
 	// Note lines
 	var lineStartX = SHEET_X + SHEET_LEFT_MARGIN;
 	var lineStartY = SHEET_Y + SHEET_TOP_MARGIN;
+	SHEET_LINES_START_Y = lineStartY;
 	var lineEndX = SHEET_X + SHEET_WIDTH - SHEET_RIGHT_MARGIN;
 	var lineEndY = lineStartY;
 	var numLines = 5;
@@ -77,9 +89,61 @@ function drawLines() {
 	CONTEXT.stroke();
 }
 
+function initNotesPosition() {
+	MUSIC_NOTES[1] = 'C';
+	MUSIC_NOTES[2] = 'D';
+	MUSIC_NOTES[3] = 'E';
+	MUSIC_NOTES[4] = 'F';
+	MUSIC_NOTES[5] = 'G';
+	MUSIC_NOTES[6] = 'A';
+	MUSIC_NOTES[7] = 'B';
+
+	TREBLE_C3_POS = SHEET_LINES_START_Y + 5 * LINE_SPACING;
+	// From C3 to A4
+	var numNotes = 13;
+	var noteIdx = 1;
+	var noteRange = 3;
+	for(var i = 0; i < 13; i++){
+		if(noteIdx > 7){
+			noteIdx = 1;
+			noteRange = noteRange + 1;
+		}
+		var noteId = MUSIC_NOTES[noteIdx] + noteRange;
+		console.log(noteId)
+		TREBLE_NOTES_POSITION[noteId] = TREBLE_C3_POS - i * getHalfStepValue();
+		noteIdx = noteIdx + 1;
+	}
+
+	BASS_E2_POS = SHEET_LINES_START_Y + 5 * LINE_SPACING;
+
+	// From G2 to C3
+	var numNotes = 13;
+	var noteIdx = 3;
+	var noteRange = 2;
+	for(var i = 0; i < 13; i++){
+		if(noteIdx > 7){
+			noteIdx = 1;
+			noteRange = noteRange + 1;
+		}
+		var noteId = MUSIC_NOTES[noteIdx] + noteRange;
+		console.log(noteId)
+		BASS_NOTES_POSITION[noteId] = BASS_E2_POS - i * getHalfStepValue();
+		noteIdx = noteIdx + 1;
+	}
+
+}
+
+function getHalfStepValue() {
+	return LINE_SPACING / 2;
+}
+
+function getStepValue() {
+	return 2 * getHalfStepValue();
+}
+
 function drawNote(clef, note) {
-	var noteX = 400;
-	var noteY = 400 - LINE_SPACING / 2;
+	var noteX = 200;
+	var noteY = TREBLE_NOTES_POSITION['C4'];
 	var radius = 15;
 
 	CONTEXT.save();
@@ -106,12 +170,13 @@ function drawSheetPage() {
 	CONTEXT.fill();
 	drawLines();
 	drawTrebleClef();
-	drawNote();
 }
 
 function main() {
 	setup();
 	drawSheetPage();
+	initNotesPosition();
+	drawNote();
 	var gui = new dat.GUI();
 }
 
