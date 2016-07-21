@@ -10,7 +10,7 @@ var SHEET_Y;
 var LINE_SPACING = 50;
 var SHEET_RIGHT_MARGIN = 50;
 var SHEET_LEFT_MARGIN = 5;
-var SHEET_TOP_MARGIN = 20;
+var SHEET_TOP_MARGIN = 25;
 var TREBLE_CLEF_X;
 var TREBLE_CLEF_Y;
 var TREBLE_CLEF_LEFT_MARGIN = 50; // Relative to Sheet Music position
@@ -18,10 +18,14 @@ var TREBLE_CLEF_TOP_MARGIN = 40; // Relative to Sheet Music position
 var TREBLE_CLEF_SIZE_FACTOR = 9;
 var STEM_HEIGHT = 125;
 var TREBLE_C3_POS = 0;
-var SHEET_LINES_START_Y = 0; // Y-Position of the topmost line in the sheet music
+var SHEET_LINES_START_Y = 0; // Y-Position of the top line in the sheet music
+var SHEET_LINES_END_Y  = 0; // Y-Position of the bottom line in the sheet music
 var TREBLE_NOTES_POSITION = {}
 var BASS_NOTES_POSITION = {}
 var MUSIC_NOTES = {}
+var CURRENT_NOTE = '';
+var MODE = 'waiting';
+
 
 function setup() {
 	CANVAS = document.getElementById("canvas");
@@ -62,10 +66,13 @@ function drawLines() {
 	var numLines = 5;
 
 	for(var i = 0; i < 5; i++){
+		SHEET_LINES_END_Y = lineEndY + (LINE_SPACING * i);
 		CONTEXT.beginPath();
 		CONTEXT.moveTo(lineStartX,lineStartY + (LINE_SPACING * i));
-		CONTEXT.lineTo(lineEndX, lineEndY + (LINE_SPACING * i));
+		CONTEXT.lineTo(lineEndX, SHEET_LINES_END_Y);
 		CONTEXT.stroke();
+
+
 	}
 
 	// Left border
@@ -98,28 +105,36 @@ function initNotesPosition() {
 	MUSIC_NOTES[6] = 'A';
 	MUSIC_NOTES[7] = 'B';
 
-	TREBLE_C3_POS = SHEET_LINES_START_Y + 5 * LINE_SPACING;
-	// From C3 to A4
-	var numNotes = 13;
-	var noteIdx = 1;
-	var noteRange = 3;
-	for(var i = 0; i < 13; i++){
-		if(noteIdx > 7){
-			noteIdx = 1;
-			noteRange = noteRange + 1;
-		}
-		var noteId = MUSIC_NOTES[noteIdx] + noteRange;
-		console.log(noteId)
-		TREBLE_NOTES_POSITION[noteId] = TREBLE_C3_POS - i * getHalfStepValue();
-		noteIdx = noteIdx + 1;
-	}
+	initTrebleNotesPosition();
+	initBassNotesPosition();
+}
 
+function initTrebleNotesPosition() {
+		TREBLE_C3_POS = SHEET_LINES_START_Y + 5 * LINE_SPACING;
+		// From C3 to A4
+		var numNotes = 13;
+		var noteIdx = 1;
+		var noteRange = 3;
+		for(var i = 0; i < 13; i++){
+			if(noteIdx > 7){
+				noteIdx = 1;
+				noteRange = noteRange + 1;
+			}
+			var noteId = MUSIC_NOTES[noteIdx] + noteRange;
+			console.log(noteId)
+			TREBLE_NOTES_POSITION[noteId] = TREBLE_C3_POS - i * getHalfStepValue();
+			noteIdx = noteIdx + 1;
+		}
+
+}
+
+function initBassNotesPosition() {
 	BASS_E2_POS = SHEET_LINES_START_Y + 5 * LINE_SPACING;
 
-	// From G2 to C3
+	// From E1 to C3
 	var numNotes = 13;
 	var noteIdx = 3;
-	var noteRange = 2;
+	var noteRange = 1;
 	for(var i = 0; i < 13; i++){
 		if(noteIdx > 7){
 			noteIdx = 1;
@@ -130,7 +145,6 @@ function initNotesPosition() {
 		BASS_NOTES_POSITION[noteId] = BASS_E2_POS - i * getHalfStepValue();
 		noteIdx = noteIdx + 1;
 	}
-
 }
 
 function getHalfStepValue() {
@@ -142,8 +156,13 @@ function getStepValue() {
 }
 
 function drawNote(clef, note) {
-	var noteX = 200;
-	var noteY = TREBLE_NOTES_POSITION['C4'];
+	var noteX = SHEET_X + SHEET_LEFT_MARGIN + SHEET_WIDTH / 4;
+	var noteY;
+	if(clef == 'treble'){
+			noteY = TREBLE_NOTES_POSITION[note];
+	}else if(clef == 'bass'){
+			noteY = BASS_NOTES_POSITION[note];
+	}
 	var radius = 15;
 
 	CONTEXT.save();
@@ -160,6 +179,23 @@ function drawNote(clef, note) {
 	CONTEXT.stroke();
 
 	CONTEXT.restore();
+
+	if(note == 'C3' || note == 'A4' || note == 'E1'){
+		lineStartX =  SHEET_X + SHEET_LEFT_MARGIN;
+		lineEndX = SHEET_X + SHEET_WIDTH - SHEET_RIGHT_MARGIN;
+		lineStartY = noteY;
+		lineEndY = noteY;
+		CONTEXT.beginPath();
+		CONTEXT.moveTo(lineStartX, lineStartY);
+		CONTEXT.lineTo(lineEndX, lineEndY);
+		CONTEXT.stroke();
+	}
+}
+
+function drawQuestionMark() {
+	CONTEXT.font = "250px Arial";
+	CONTEXT.fillStyle = 'black';
+	CONTEXT.fillText("?", SHEET_X + SHEET_LEFT_MARGIN + SHEET_WIDTH / 2 - 125, SHEET_LINES_END_Y + 300);
 }
 
 function drawSheetPage() {
@@ -172,11 +208,76 @@ function drawSheetPage() {
 	drawTrebleClef();
 }
 
+function getRandomNumber(min, max) {
+    return Math.floor(Math.random()*(max-min+1)+min);
+}
+
+function generateRandomNote() {
+	var clef = 'treble';
+	var note = getRandomNumber(1, 7);
+	// if(num == 1) {
+	// 	clef = 'treble';
+	// 	var range = Math.floor((Math.random() * 4) + 3);
+	// }else{
+	// 	clef = 'bass';
+	// 	var range = Math.floor((Math.random() * 3) + 1);
+	// }
+	if(note < 7){
+		var range = getRandomNumber(3,4);
+	}else{
+		var range = 3;
+	}
+	var noteId = MUSIC_NOTES[note] + String(range);
+	console.log("Generated note: " + noteId);
+	CURRENT_NOTE = noteId;
+	drawNote(clef, noteId);
+}
+
+function draw() {
+	MODE = 'waiting'
+	CONTEXT.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+	drawSheetPage();
+	generateRandomNote();
+	drawQuestionMark();
+}
+
+function checkNote(note) {
+	if(CURRENT_NOTE[0]==note){
+		console.log('Correct!');
+		drawResultMsg('Correct: ' + CURRENT_NOTE);
+	}else{
+		console.log('Wrong!');
+		drawResultMsg('Wrong: ' + CURRENT_NOTE);
+	}
+	MODE = 'next';
+}
+
+function drawResultMsg(message) {
+	CONTEXT.beginPath();
+	CONTEXT.rect(0,SHEET_LINES_END_Y + 100,SHEET_WIDTH,SHEET_HEIGHT);
+	CONTEXT.fillStyle = 'white';
+	CONTEXT.fill();
+	CONTEXT.font = "150px Arial";
+	CONTEXT.fillStyle = 'black';
+	CONTEXT.fillText(message, SHEET_X, SHEET_LINES_END_Y + 300);
+}
+
 function main() {
 	setup();
 	drawSheetPage();
 	initNotesPosition();
-	drawNote();
+
+
+	window.addEventListener('keydown', function(event) {
+		if(MODE == 'waiting'){
+				var inputId = String.fromCharCode(event.keyCode);
+	      console.log(inputId);
+				checkNote(inputId);
+		}else{
+			draw();
+		}
+	}, false);
+	draw();
 	var gui = new dat.GUI();
 }
 
