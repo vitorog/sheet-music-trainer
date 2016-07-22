@@ -128,10 +128,10 @@ function initNotesPosition() {
 
 function initTrebleNotesPosition() {
 		TREBLE_C3_POS = SHEET_LINES_START_Y + 5 * LINE_SPACING;
-		// From C3 to A4
+		// From C4 to A5
 		var numNotes = 13;
 		var noteIdx = 1;
-		var noteRange = 3;
+		var noteRange = 4;
 		for(var i = 0; i < 13; i++){
 			if(noteIdx > 7){
 				noteIdx = 1;
@@ -148,10 +148,10 @@ function initTrebleNotesPosition() {
 function initBassNotesPosition() {
 	BASS_E2_POS = SHEET_LINES_START_Y + 5 * LINE_SPACING;
 
-	// From E1 to C3
+	// From E2 to C4
 	var numNotes = 13;
 	var noteIdx = 3;
-	var noteRange = 1;
+	var noteRange = 2;
 	for(var i = 0; i < 13; i++){
 		if(noteIdx > 7){
 			noteIdx = 1;
@@ -199,7 +199,7 @@ function drawNote(clef, note) {
 
 	CONTEXT.restore();
 
-	if(note == 'C3' || note == 'A4' || note == 'E1'){
+	if(note == 'C4' || note == 'A5' || note == 'E2'){
 		lineStartX =  SHEET_X + SHEET_LEFT_MARGIN;
 		lineEndX = SHEET_X + SHEET_WIDTH - SHEET_RIGHT_MARGIN;
 		lineStartY = noteY;
@@ -238,18 +238,18 @@ function generateRandomNote() {
 	if(num == 1) {
 		clef = 'treble';
 		if(note < 7){
-			var range = getRandomNumber(3,4);
+			var range = getRandomNumber(4,5);
 		}else{
-			var range = 3;
+			var range = 4;
 		}
 	}else{
 		clef = 'bass';
 		if(note > 2){
-			var range = getRandomNumber(1,2);
-		}if(note == 1){
 			var range = getRandomNumber(2,3);
+		}if(note == 1){
+			var range = getRandomNumber(3,4);
 		}else if(note == 2){
-			var range = 2;
+			var range = 3;
 		}
 	}
 
