@@ -16,6 +16,11 @@ var TREBLE_CLEF_Y;
 var TREBLE_CLEF_LEFT_MARGIN = 50; // Relative to Sheet Music position
 var TREBLE_CLEF_TOP_MARGIN = 40; // Relative to Sheet Music position
 var TREBLE_CLEF_SIZE_FACTOR = 9;
+var BASS_CLEF_X;
+var BASS_CLEF_Y;
+var BASS_CLEF_SIZE_FACTOR = 9;
+var BASS_CLEF_LEFT_MARGIN = 50;
+var BASS_CLEF_TOP_MARGIN = 10;
 var STEM_HEIGHT = 125;
 var TREBLE_C3_POS = 0;
 var SHEET_LINES_START_Y = 0; // Y-Position of the top line in the sheet music
@@ -25,6 +30,7 @@ var BASS_NOTES_POSITION = {}
 var MUSIC_NOTES = {}
 var CURRENT_NOTE = '';
 var MODE = 'waiting';
+var NOTE_TIME = 0;
 
 
 function setup() {
@@ -43,6 +49,8 @@ function setup() {
 	TREBLE_CLEF_Y = SHEET_TOP_MARGIN - TREBLE_CLEF_TOP_MARGIN;
 	SHEET_LEFT_MARGIN = SHEET_LEFT_MARGIN * CANVAS_WIDTH / 100;
 	TREBLE_CLEF_X = SHEET_LEFT_MARGIN + TREBLE_CLEF_LEFT_MARGIN;
+	BASS_CLEF_X = SHEET_LEFT_MARGIN + BASS_CLEF_LEFT_MARGIN;
+	BASS_CLEF_Y = SHEET_TOP_MARGIN + BASS_CLEF_TOP_MARGIN;
 }
 
 function drawTrebleClef() {
@@ -54,6 +62,17 @@ function drawTrebleClef() {
 	 CONTEXT.drawImage(trebleImg, TREBLE_CLEF_X, TREBLE_CLEF_Y, imgWidth / TREBLE_CLEF_SIZE_FACTOR, imgHeight / TREBLE_CLEF_SIZE_FACTOR);
 	};
 	trebleImg.src = 'images/treble_clef.png';
+}
+
+function drawBassClef() {
+	var bassImg = new Image();
+
+	bassImg.onload = function() {
+	 imgWidth = bassImg.width;
+	 imgHeight = bassImg.height;
+	 CONTEXT.drawImage(bassImg, BASS_CLEF_X, BASS_CLEF_Y, imgWidth / BASS_CLEF_SIZE_FACTOR, imgHeight / BASS_CLEF_SIZE_FACTOR);
+	};
+	bassImg.src = 'images/bass_clef.png';
 }
 
 function drawLines() {
@@ -71,8 +90,6 @@ function drawLines() {
 		CONTEXT.moveTo(lineStartX,lineStartY + (LINE_SPACING * i));
 		CONTEXT.lineTo(lineEndX, SHEET_LINES_END_Y);
 		CONTEXT.stroke();
-
-
 	}
 
 	// Left border
@@ -160,8 +177,10 @@ function drawNote(clef, note) {
 	var noteY;
 	if(clef == 'treble'){
 			noteY = TREBLE_NOTES_POSITION[note];
+			drawTrebleClef();
 	}else if(clef == 'bass'){
 			noteY = BASS_NOTES_POSITION[note];
+			drawBassClef();
 	}
 	var radius = 15;
 
@@ -190,6 +209,7 @@ function drawNote(clef, note) {
 		CONTEXT.lineTo(lineEndX, lineEndY);
 		CONTEXT.stroke();
 	}
+
 }
 
 function drawQuestionMark() {
@@ -205,7 +225,6 @@ function drawSheetPage() {
 	CONTEXT.fillStyle = 'white';
 	CONTEXT.fill();
 	drawLines();
-	drawTrebleClef();
 }
 
 function getRandomNumber(min, max) {
@@ -215,18 +234,25 @@ function getRandomNumber(min, max) {
 function generateRandomNote() {
 	var clef = 'treble';
 	var note = getRandomNumber(1, 7);
-	// if(num == 1) {
-	// 	clef = 'treble';
-	// 	var range = Math.floor((Math.random() * 4) + 3);
-	// }else{
-	// 	clef = 'bass';
-	// 	var range = Math.floor((Math.random() * 3) + 1);
-	// }
-	if(note < 7){
-		var range = getRandomNumber(3,4);
+	var num = getRandomNumber(1, 2);
+	if(num == 1) {
+		clef = 'treble';
+		if(note < 7){
+			var range = getRandomNumber(3,4);
+		}else{
+			var range = 3;
+		}
 	}else{
-		var range = 3;
+		clef = 'bass';
+		if(note > 2){
+			var range = getRandomNumber(1,2);
+		}if(note == 1){
+			var range = getRandomNumber(2,3);
+		}else if(note == 2){
+			var range = 2;
+		}
 	}
+
 	var noteId = MUSIC_NOTES[note] + String(range);
 	console.log("Generated note: " + noteId);
 	CURRENT_NOTE = noteId;
@@ -239,6 +265,7 @@ function draw() {
 	drawSheetPage();
 	generateRandomNote();
 	drawQuestionMark();
+	printTime();
 }
 
 function checkNote(note) {
@@ -262,6 +289,19 @@ function drawResultMsg(message) {
 	CONTEXT.fillText(message, SHEET_X, SHEET_LINES_END_Y + 300);
 }
 
+function printTime() {
+	CONTEXT.beginPath();
+	CONTEXT.rect(SHEET_WIDTH - 350, SHEET_HEIGHT - 250, CANVAS_WIDTH, CANVAS_HEIGHT);
+	CONTEXT.fillStyle = 'white';
+	CONTEXT.fill();
+	CONTEXT.font = "50px Arial";
+	CONTEXT.fillStyle = 'black';
+	CONTEXT.fillText(NOTE_TIME  / 1000 + ' s', SHEET_WIDTH - 350, SHEET_LINES_END_Y + 300);
+	if(MODE == 'waiting'){
+		NOTE_TIME = NOTE_TIME + 100;
+	}
+}
+
 function main() {
 	setup();
 	drawSheetPage();
@@ -274,9 +314,11 @@ function main() {
 	      console.log(inputId);
 				checkNote(inputId);
 		}else{
+			NOTE_TIME = 0;
 			draw();
 		}
 	}, false);
+	setInterval(printTime, 100);
 	draw();
 	var gui = new dat.GUI();
 }
