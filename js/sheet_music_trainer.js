@@ -213,9 +213,9 @@ function drawNote(clef, note) {
 }
 
 function drawQuestionMark() {
-	CONTEXT.font = "250px Arial";
+	CONTEXT.font = "50px Arial";
 	CONTEXT.fillStyle = 'black';
-	CONTEXT.fillText("?", SHEET_X + SHEET_LEFT_MARGIN + SHEET_WIDTH / 2 - 125, SHEET_LINES_END_Y + 300);
+	CONTEXT.fillText("?", 0, CANVAS_HEIGHT);
 }
 
 function drawSheetPage() {
@@ -281,22 +281,22 @@ function checkNote(note) {
 
 function drawResultMsg(message) {
 	CONTEXT.beginPath();
-	CONTEXT.rect(0,SHEET_LINES_END_Y + 100,SHEET_WIDTH,SHEET_HEIGHT);
-	CONTEXT.fillStyle = 'white';
-	CONTEXT.fill();
-	CONTEXT.font = "150px Arial";
-	CONTEXT.fillStyle = 'black';
-	CONTEXT.fillText(message, SHEET_X, SHEET_LINES_END_Y + 300);
-}
-
-function printTime() {
-	CONTEXT.beginPath();
-	CONTEXT.rect(SHEET_WIDTH - 350, SHEET_HEIGHT - 250, CANVAS_WIDTH, CANVAS_HEIGHT);
+	CONTEXT.rect(0,CANVAS_HEIGHT - 50, 50, 50);
 	CONTEXT.fillStyle = 'white';
 	CONTEXT.fill();
 	CONTEXT.font = "50px Arial";
 	CONTEXT.fillStyle = 'black';
-	CONTEXT.fillText(NOTE_TIME  / 1000 + ' s', SHEET_WIDTH - 350, SHEET_LINES_END_Y + 300);
+	CONTEXT.fillText(message, 0, CANVAS_HEIGHT);
+}
+
+function printTime() {
+	CONTEXT.beginPath();
+	CONTEXT.rect(CANVAS_WIDTH - 150, CANVAS_HEIGHT - 50, 150, 50);
+	CONTEXT.fillStyle = 'white';
+	CONTEXT.fill();
+	CONTEXT.font = "50px Arial";
+	CONTEXT.fillStyle = 'black';
+	CONTEXT.fillText(NOTE_TIME  / 1000 + ' s', CANVAS_WIDTH - 150, CANVAS_HEIGHT);
 	if(MODE == 'waiting'){
 		NOTE_TIME = NOTE_TIME + 100;
 	}
