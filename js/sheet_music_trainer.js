@@ -31,6 +31,10 @@ var MUSIC_NOTES = {}
 var CURRENT_NOTE = '';
 var MODE = 'waiting';
 var NOTE_TIME = 0;
+var NUM_CORRECT = 0;
+var TOTAL_NOTES = 0;
+var AVG_RESPONSE = 0;
+var DEFAULT_FONT = "35px Arial";
 
 
 function setup() {
@@ -213,9 +217,9 @@ function drawNote(clef, note) {
 }
 
 function drawQuestionMark() {
-	CONTEXT.font = "50px Arial";
+	CONTEXT.font = DEFAULT_FONT;
 	CONTEXT.fillStyle = 'black';
-	CONTEXT.fillText("?", 0, CANVAS_HEIGHT);
+	CONTEXT.fillText("?", 0, CANVAS_HEIGHT - 2);
 }
 
 function drawSheetPage() {
@@ -256,6 +260,7 @@ function generateRandomNote() {
 	var noteId = MUSIC_NOTES[note] + String(range);
 	console.log("Generated note: " + noteId);
 	CURRENT_NOTE = noteId;
+	TOTAL_NOTES = TOTAL_NOTES + 1;
 	drawNote(clef, noteId);
 }
 
@@ -271,6 +276,7 @@ function draw() {
 function checkNote(note) {
 	if(CURRENT_NOTE[0]==note){
 		console.log('Correct!');
+		NUM_CORRECT = NUM_CORRECT + 1;
 		drawResultMsg('Correct: ' + CURRENT_NOTE);
 	}else{
 		console.log('Wrong!');
@@ -284,9 +290,12 @@ function drawResultMsg(message) {
 	CONTEXT.rect(0,CANVAS_HEIGHT - 50, 50, 50);
 	CONTEXT.fillStyle = 'white';
 	CONTEXT.fill();
-	CONTEXT.font = "50px Arial";
+	CONTEXT.font = DEFAULT_FONT;
 	CONTEXT.fillStyle = 'black';
-	CONTEXT.fillText(message, 0, CANVAS_HEIGHT);
+	CONTEXT.fillText(message, 0, CANVAS_HEIGHT - 2);
+	CONTEXT.fillText("Score: " + NUM_CORRECT + " / " + TOTAL_NOTES, 300, CANVAS_HEIGHT - 2);
+	var avgResponse = Math.round(AVG_RESPONSE * 100) / 100;
+	CONTEXT.fillText("Avg time: " + avgResponse + " s", 600, CANVAS_HEIGHT - 2);
 }
 
 function printTime() {
@@ -294,9 +303,9 @@ function printTime() {
 	CONTEXT.rect(CANVAS_WIDTH - 150, CANVAS_HEIGHT - 50, 150, 50);
 	CONTEXT.fillStyle = 'white';
 	CONTEXT.fill();
-	CONTEXT.font = "50px Arial";
+	CONTEXT.font = DEFAULT_FONT;
 	CONTEXT.fillStyle = 'black';
-	CONTEXT.fillText(NOTE_TIME  / 1000 + ' s', CANVAS_WIDTH - 150, CANVAS_HEIGHT);
+	CONTEXT.fillText(NOTE_TIME  / 1000 + ' s', CANVAS_WIDTH - 75, CANVAS_HEIGHT - 2);
 	if(MODE == 'waiting'){
 		NOTE_TIME = NOTE_TIME + 100;
 	}
@@ -310,6 +319,7 @@ function main() {
 
 	window.addEventListener('keydown', function(event) {
 		if(MODE == 'waiting'){
+			  AVG_RESPONSE = (AVG_RESPONSE + NOTE_TIME) / (TOTAL_NOTES * 1000);
 				var inputId = String.fromCharCode(event.keyCode);
 	      console.log(inputId);
 				checkNote(inputId);
